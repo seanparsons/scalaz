@@ -4,12 +4,25 @@ package std
 import std.AllInstances._
 import scalaz.scalacheck.ScalazProperties._
 import scala.math.{Ordering => SOrdering}
+import org.scalacheck.Arbitrary._
+import org.scalacheck.Prop._
 
 class MapTest extends Spec {
   checkAll(traverse.laws[({type F[V] = Map[Int,V]})#F])
   checkAll(isEmpty.laws[({type F[V] = Map[Int,V]})#F])
   checkAll(monoid.laws[Map[Int,String]])
   checkAll(order.laws[Map[Int,String]])
+  
+  "map inequality" ! forAllNoShrink(arbitrary[Map[String, Int]].filter(_.size > 0)){map =>
+    val modifiedMap = map - map.head._1
+    !Equal[Map[String, Int]].equal(modifiedMap, map)
+  }
+
+  "map equality" ! prop{(list: List[(String, Int)]) =>
+    val map1 = list.toMap
+    val map2 = list.toMap
+    Equal[Map[String, Int]].equal(map1, map2)
+  }
 
   "map ordering" ! prop {
     val O = implicitly[Order[Map[String,Int]]]

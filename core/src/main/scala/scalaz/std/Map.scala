@@ -5,13 +5,14 @@ trait MapInstances0 {
   private[std] trait MapEqual[K, V] extends Equal[Map[K, V]] {
     implicit def OK: Order[K]
     implicit def OV: Equal[V]
+    import set._
+    val equalSetK = Equal[Set[K]]
 
     override def equal(a1: Map[K, V], a2: Map[K, V]): Boolean = {
-      import set._
       if (equalIsNatural) a1 == a2
-      else Equal[Set[K]].equal(a1.keySet, a1.keySet) && {
+      else equalSetK.equal(a1.keySet, a2.keySet) && {
         a1.forall {
-          case (k, v) => Equal[V].equal(v, a2(k))
+          case (k, v) => OV.equal(v, a2(k))
         }
       }
     }
@@ -19,8 +20,8 @@ trait MapInstances0 {
   }
 
   implicit def mapEqual[K: Order, V: Equal]: Equal[Map[K, V]] = new MapEqual[K, V] {
-    def OK = Order[K]
-    def OV = Equal[V]
+    val OK = Order[K]
+    val OV = Equal[V]
   }
 }
 
